@@ -1,3 +1,5 @@
+#include "Command.h"
+
 #include <iostream>
 
 #include <cstring>
@@ -15,28 +17,32 @@ using namespace std;
 int main()
 {
     char line[1000];
-    char prompt[100] = ">";
+    String prompt = ">";
     int registers[10] = {};
+    
+    QuitCmd qCmd;
+    PromptCmd promptCmd(&prompt);
     
     while(true) {
         cout << prompt << " ";
         cin.getline(line, 1000);
-        if (strcmp(line, "quit") == 0) {
-            break;
+        if (qCmd.GetName() == line) {
+            if (!qCmd.execute(line, NULL))
+                break;
+
         } else if (strcmp(line, "help") == 0) {
             cout << "Supported commands:" << endl
-                 << "quit" << endl
-                 << "cmd.prompt" << endl
+                 << qCmd.GetName() << endl
+                 << promptCmd.GetName() << endl
                  << "asm.reg.set" << endl
                  << "asm.reg.add" << endl
                  << "asm.reg.dbg" << endl
                  << "help" << endl;
-        } else if (strncmp(line, "cmd.prompt ", strlen("cmd.prompt ")) == 0) {
-            char* argument = line + strlen("cmd.prompt ");
-            // "cmd.prompt %asd" => argument="%asd"
-            // "cmd.prompt ?1" => argument="?1"
-            if (strlen(argument) < 100 && *argument != '\0')
-                strcpy(prompt, argument);
+                 
+        } else if (String(line).startsWith(promptCmd.GetName().data())) {
+            if(!promptCmd.execute(line, NULL))
+                break;
+                
         } else if (strncmp(line, "asm.reg.set ", strlen("asm.reg.set ")) == 0) {
             char* arguments = line + strlen("asm.reg.set ");
             // "asm.reg.set 0 +15" => arguments="0 +15"
